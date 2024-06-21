@@ -7,7 +7,7 @@ require("./mail/PHPMailer/src/Exception.php");
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-include 'user.php';
+include 'user.php'; // Chỉnh sửa đường dẫn hoặc tên file tùy vào cấu trúc của dự án
 
 $errors = [];
 $success = "";
@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $recipientEmail = $email;
-        $otp = generateOTP($email);
+        $orderDetails = "Chi tiết đơn hàng của bạn"; // Thay đổi thành thông tin chi tiết đơn hàng thực tế
+        
         $mail = new PHPMailer(true);
     
         try {
@@ -35,39 +36,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->SMTPAuth = true;
             $mail->SMTPSecure = 'ssl';
             $mail->Port = 465;
-            $mail->Username = 'nguyenvu.cusue@gmail.com';
-            $mail->Password = 'nvui anpi bpzr bfil'; 
+            $mail->Username = 'nguyenvu.cusue@gmail.com'; // Thay đổi thành email của bạn
+            $mail->Password = 'nvui anpi bpzr bfil'; // Thay đổi thành mật khẩu email của bạn
     
             // Recipients
-            $mail->setFrom('nguyenvu.cusue@gmail.com', 'Reset Password');
+            $mail->setFrom('nguyenvu.cusue@gmail.com', 'Tên Người Gửi'); // Thay đổi tên người gửi nếu cần
             $mail->addAddress($recipientEmail);
     
             // Content
             $mail->isHTML(true);
-            $mail->Subject = 'OTP for Password Reset';
-            $mail->Body = "<p>Xin chào,</p><p>Dưới đây là mã OTP của bạn để đặt lại mật khẩu: <strong>$otp</strong></p><p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p><p>Trân trọng,</p><p>Đội ngũ hỗ trợ của chúng tôi</p>";
+            $mail->Subject = 'Xác nhận đơn hàng'; // Tiêu đề email
+            $mail->Body = "<p>Xin chào,</p><p>Đơn hàng của bạn đã được xác nhận. Dưới đây là chi tiết đơn hàng:</p><p>$orderDetails</p><p>Cảm ơn bạn đã mua hàng.</p><p>Trân trọng,</p><p>Đội ngũ hỗ trợ của chúng tôi</p>";
     
             // Send the email
             $mail->send();
-            $success = 'Mã OTP đã được gửi đến email của bạn <a href="reset_password.php" class = "btn btn-primary w-100">OTP</a> ';
+            $success = 'Email xác nhận đơn hàng đã được gửi đến email của bạn.';
         } catch (Exception $e) {
             $errors['email'] = "Không thể gửi email. Vui lòng thử lại sau.";
         }
     }
-    
-}
-
-
-function generateOTP($email) {
-    $otp = rand(100000, 999999);
-    $dbHelper = new DBUntil();
-    $dbHelper->execute("UPDATE users SET otp_code = ? WHERE email = ?", [$otp, $email]);
-    $_SESSION['email'] = $email;
-    return $otp;
 }
 
 function ischeckmail($email) {
-    $dbHelper = new DBUntil();
+    $dbHelper = new DBUntil(); // Chỉnh sửa tên lớp DBUtil theo cấu trúc dự án của bạn
     $result = $dbHelper->select("SELECT * FROM users WHERE email = ?", [$email]);
     return !empty($result);
 }
@@ -76,7 +67,7 @@ function ischeckmail($email) {
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Forgot Password</title>
+    <title>Confirmation Email</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -124,24 +115,24 @@ function ischeckmail($email) {
                 <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
                     <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <a href="forgot_password.php" class="">
+                            <a href="confirmation_email.php" class="">
                                 <h3 class="text-primary text-uppercase"><i class="fa fa-hashtag me-2"></i>DASHMIN</h3>
                             </a>
                         </div>
-                        <h3 class="text-center mb-5">Forgot Password</h3>
+                        <h3 class="text-center mb-5">Xác nhận đơn hàng</h3>
                         <?php if (!empty($success)) : ?>
                             <p class="success"><?php echo $success; ?></p>
                         <?php endif; ?>
-                        <form action="forgot_password.php" method="post">
+                        <form action="confirmation_email.php" method="post">
                             <input type="text" class="form-control mb-3" name="email" value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" placeholder="Email">
                             <?php if (isset($errors['email'])) : ?>
                                     <p class="red"><?php echo $errors['email']; ?></p>
                             <?php endif; ?>
-                            <input type="submit" class="btn btn-primary btn-user btn-block btn-lg w-100" name="send" value="Send Email">
+                            <input type="submit" class="btn btn-primary btn-user btn-block btn-lg w-100" name="send" value="Gửi Email">
                             <hr>
-                            <p class="text-center mb-0">Remember Password? <a href="signin.php">Sign In</a></p>
+                            <p class="text-center mb-0">Nhớ mật khẩu? <a href="signin.php">Đăng nhập</a></p>
                             <hr>
-                            <p class="text-center mb-0">Don't have an Account? <a href="signup.php">Sign Up</a></p>
+                            <p class="text-center mb-0">Chưa có tài khoản? <a href="signup.php">Đăng ký</a></p>
                         </form>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ session_start();
 include_once('./DBUtil.php');
 include_once('../config/status_orderconfig.php');
 
+// Khởi tạo đối tượng DBUtil để làm việc với cơ sở dữ liệu
 $dbHelper = new DBUntil();
 
 // Lấy dữ liệu từ bảng orders và order_details
@@ -14,48 +15,45 @@ $orders = $dbHelper->select("
     ORDER BY o.order_id DESC
 ");
 
-// Tính tổng doanh thu
+// Tính tổng doanh thu từ các đơn hàng đã giao thành công (status = 4)
 $totalRevenue = 0;
-// Đếm số đơn đã đi
+// Đếm số đơn hàng đã xử lý (status khác 0)
 $totalProcessedOrders = 0;
 
 foreach ($orders as $order) {
-    if (in_array($order['status'], [4])) {   
-        // Add order total to total revenue
+    // Tính tổng doanh thu
+    if ($order['status'] == 4) {
         $totalRevenue += $order['total'];
     }
 
-    // Increment total processed orders
-    if ($order['status'] != 0) {
+    // Đếm số đơn đã xử lý
+    if ($order['status'] != 1 && $order['status'] != 0 && $order['status'] != 2) {
         $totalProcessedOrders++;
-    }
-
-    // Subtract order total if status is 5
-    if ($order['status'] == 5) {
-        $totalProcessedOrders--;
     }
 }
 
+// Hàm để lấy trạng thái của đơn hàng từ file status_orderconfig.php
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <title>Order Details</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="py-5 text-center">
+    <div class="container py-5">
+        <div class="text-center">
             <h2>Order Details</h2>
-            <!-- Back to Index Button -->
             <a href="index.php" class="btn btn-primary">Back to Index</a>
         </div>
-        <div class="row">
+
+        <div class="row mt-4">
             <div class="col-md-12">
                 <?php if (!empty($orders)) : ?>
                     <table class="table table-striped">
@@ -72,10 +70,11 @@ foreach ($orders as $order) {
                                 <th scope="col">Coupon Code</th>
                                 <th scope="col">Product Name</th>
                                 <th scope="col">Quantity</th>
-                                <th scope="col">Day-time</th>
+                                <th scope="col">Created At</th>
                                 <th scope="col">Price</th>
                                 <th scope="col">Total</th>
                                 <th scope="col">Status</th>
+                                <th scope="col">Update Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -96,23 +95,43 @@ foreach ($orders as $order) {
                                     <td><?php echo number_format($order['price'], 2); ?> VND</td>
                                     <td><?php echo number_format($order['total'], 2); ?> VND</td>
                                     <td><?php echo getStatusText($order['status']); ?></td>
+                                    <td>
+                                        <form action="update_status.php" method="post">
+                                            <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
+                                            <select name="status" class="form-select">
+                                                <option value="1" <?php if ($order['status'] == 1) echo 'selected'; ?>>Chưa giải quyết</option>
+                                                <option value="2" <?php if ($order['status'] == 2) echo 'selected'; ?>>Đang xử lý</option>
+                                                <option value="3" <?php if ($order['status'] == 3) echo 'selected'; ?>>Đang vận chuyển</option>
+                                                <option value="4" <?php if ($order['status'] == 4) echo 'selected'; ?>>Đã giao hàng</option>
+                                                <option value="5" <?php if ($order['status'] == 5) echo 'selected'; ?>>Đã hủy</option>
+                                                <option value="6" <?php if ($order['status'] == 6) echo 'selected'; ?>>Hoàn trả</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary mt-2">Update</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <!-- Total Revenue and Total Processed Orders -->
-                    <div class="alert alert-success" role="alert">
+
+                    <!-- Hiển thị tổng doanh thu và số đơn hàng đã xử lý -->
+                    <div class="alert alert-success mt-4">
                         <h4 class="alert-heading">Tổng doanh thu</h4>
                         <p><?php echo number_format($totalRevenue, 2); ?> VND</p>
                         <hr>
-                        <h4 class="alert-heading">Tổng số đơn</h4>
+                        <h4 class="alert-heading">Tổng số đơn đã xử lý</h4>
                         <p><?php echo $totalProcessedOrders; ?></p>
+                    </div>
+                <?php else : ?>
+                    <div class="alert alert-warning mt-4" role="alert">
+                        Không có đơn hàng nào để hiển thị.
                     </div>
                 <?php endif; ?>
             </div>
         </div>
+
         <footer class="my-5 pt-5 text-muted text-center text-small">
-            <p class="mb-1">&copy; 2017-2019 Company Name</p>
+            <p class="mb-1">&copy; 2024 Company Name</p>
             <ul class="list-inline">
                 <li class="list-inline-item"><a href="#">Privacy</a></li>
                 <li class="list-inline-item"><a href="#">Terms</a></li>
