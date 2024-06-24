@@ -255,10 +255,10 @@ $total_pages = ceil($total_products / $records_per_page);
             </div>
             <div class="row">
                 <?php foreach ($products as $product) : ?>
-                    <div class="col-md-3 mb-4">
+                    <div class="col-md-4 mb-3">
                         <div class="card h-100">
                             <?php if ($product['image']) : ?>
-                                <img src="<?php echo $product['image']; ?>" class="card-img-top h-100" alt="<?php echo $product['name']; ?>">
+                                <img src="<?php echo $product['image']; ?>" class="card-img-top h-50" alt="<?php echo $product['name']; ?>">
                             <?php endif; ?>
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo $product['name']; ?></h5>

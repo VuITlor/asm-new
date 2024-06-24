@@ -1,11 +1,8 @@
 <?php
-session_start();
 
 include_once('./DBUtil.php');
 include_once('./cart/cart.php');
-
 ini_set('display_errors', '1');
-
 $user = $_SESSION['user'];
 $dbHelper = new DBUntil();
 $categories = $dbHelper->select("SELECT * FROM products");
@@ -14,11 +11,9 @@ $carts = new Cart();
 $discount = 0;
 $sale = 0;
 $total = 0;
-
 if (isset($_POST['sale']) && !empty($_POST['sale'])) {
     $sale = $_POST['sale'];
 }
-
 if (isset($_POST['total']) && !empty($_POST['total'])) {
     $total = $_POST['total'];
 }
@@ -26,7 +21,6 @@ if (isset($_POST['total']) && !empty($_POST['total'])) {
 if (isset($_SESSION['discount'])) {
     $discount = $_SESSION['discount'];
 }
-
 function checkCode($code)
 {
     global $dbHelper;
@@ -40,9 +34,9 @@ function checkCode($code)
     );
     return count($sql) > 0 ? $sql[0] : null;
 }
-
 $orderCreated = isset($_SESSION['order_created']) && $_SESSION['order_created'];
 unset($_SESSION['order_created']);
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
@@ -64,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $total_amount = $_POST['total'];
             $discount = isset($_SESSION['discount']) ? $_SESSION['discount'] : '';
 
-            // Tạo đơn hàng mới
             $order_id = $dbHelper->insert("orders", array(
                 'customer_name' => $customer_name,
                 'customer_email' => $customer_email,
@@ -75,9 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'discount' => $discount,
                 'user_id' => $user['id'],
                 'coupon_code' => isset($_SESSION['coupon_code']) ? $_SESSION['coupon_code'] : null
+
             ));
 
-            // Thêm chi tiết đơn hàng vào order_details
             foreach ($carts->getCart() as $item) {
                 $subTotal = $item['quantity'] * $item['price'];
                 $dbHelper->insert("order_details", array(
@@ -94,13 +87,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ));
             }
 
-            $_SESSION['order_created'] = true;
+            header("Location: index_user.php");
+            exit();
         }
     }
 }
- 
-?>
 
+?>
 <!DOCTYPE html>
 <html lang="en">
 
